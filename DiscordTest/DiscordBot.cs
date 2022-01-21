@@ -6,21 +6,19 @@ namespace DiscordTest
 {
     public class DiscordBot
     {
-        private DiscordSocketClient? _client;
+        private DiscordSocketClient _client;
 
-        public async Task Init()
+        public DiscordBot()
         {
             _client = new DiscordSocketClient();
-
+            
             _client.Log += Log;
+            _client.Ready += OnReady;
+        }
 
-            //  You can assign your bot token to a string, and pass that in to connect.
-            //  This is, however, insecure, particularly if you plan to have your code hosted in a public repository.
+        public async Task Connect()
+        {
             var token = System.Environment.GetEnvironmentVariable("DiscordBotToken");
-            // Some alternative options would be to keep your token in an Environment Variable or a standalone file.
-            // var token = Environment.GetEnvironmentVariable("NameOfYourEnvironmentVariable");
-            // var token = File.ReadAllText("token.txt");
-            // var token = JsonConvert.DeserializeObject<AConfigurationClass>(File.ReadAllText("config.json")).Token;
 
             await _client.LoginAsync(TokenType.Bot, token);
             await _client.StartAsync();
@@ -33,6 +31,32 @@ namespace DiscordTest
         {
 	        Console.WriteLine(msg.ToString());
 	        return Task.CompletedTask;
+        }
+
+        // Put test code here
+        private Task OnReady()
+        {
+            Test();
+            return Task.CompletedTask;
+        }
+
+        private async void Test()
+        {
+            await Task.Delay(1000);
+            await SendMessage();
+        }
+
+        public async Task SendMessage()
+        {
+            SocketChannel channel = _client.GetChannel(934211004487852042);
+
+            if (channel is IMessageChannel messageChannel)
+            {
+                Console.WriteLine("Sending message...");
+                IUserMessage sentMessage = await messageChannel.SendMessageAsync("Hello World!");
+
+                Console.WriteLine($"Message sent: {sentMessage}");
+            }
         }
     }
 }
