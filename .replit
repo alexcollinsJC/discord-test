@@ -1,0 +1,3 @@
+language = "csharp"
+run = ["/home/runner/dotnet/dotnet", "run"]
+onBoot = ["sh", "install_dotnet.sh"]
