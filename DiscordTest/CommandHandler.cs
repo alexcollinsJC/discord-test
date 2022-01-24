@@ -1,5 +1,6 @@
 using Discord.Commands;
 using System.Reflection;
+using System.Text;
 using Discord.WebSocket;
 
 namespace DiscordTest
@@ -20,6 +21,20 @@ namespace DiscordTest
             client.MessageReceived += HandleCommandAsync;
 
             await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+
+            StringBuilder sb = new();
+            sb.AppendLine("Installed Commands:");
+            foreach (ModuleInfo moduleInfo in commandService.Modules)
+            {
+                // [module1]
+                //   command1(param1, param2)
+                //   command2(param3, param4)
+                sb.AppendLine($"[{moduleInfo.Name}]");
+                foreach (CommandInfo ci in moduleInfo.Commands)
+                {
+                    sb.AppendLine($"  {ci.Name}({string.Join(", ", ci.Parameters.Select(pi => pi.Name))})");
+                }
+            }
         }
 
         private async Task HandleCommandAsync(SocketMessage message)
