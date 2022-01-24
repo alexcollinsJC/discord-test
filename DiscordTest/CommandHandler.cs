@@ -1,6 +1,7 @@
 using Discord.Commands;
 using System.Reflection;
 using System.Text;
+using Discord;
 using Discord.WebSocket;
 
 namespace DiscordTest
@@ -19,6 +20,7 @@ namespace DiscordTest
         public async Task InstallCommandAsync()
         {
             client.MessageReceived += HandleCommandAsync;
+            commandService.CommandExecuted += OnCommandExecuted;
 
             await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), null);
 
@@ -37,6 +39,16 @@ namespace DiscordTest
             }
 
             Console.Write(sb.ToString());
+        }
+
+        private static Task OnCommandExecuted(Optional<CommandInfo> command, ICommandContext context, IResult result)
+        {
+            string commandName = command.IsSpecified ? command.Value.Name : "A command";
+            Console.WriteLine(new LogMessage(LogSeverity.Info,
+                "CommandExecution",
+                $"{commandName} was executed at {DateTime.UtcNow}."));
+
+            return Task.CompletedTask;
         }
 
         private async Task HandleCommandAsync(SocketMessage message)
