@@ -43,10 +43,10 @@ namespace DiscordTest
 
         private static Task OnCommandExecuted(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
-            string commandName = command.IsSpecified ? command.Value.Name : "A command";
+            string commandName = command.IsSpecified ? $"'{command.Value.Name}'" : "A command";
             Console.WriteLine(new LogMessage(LogSeverity.Info,
                 "CommandExecution",
-                $"{commandName} was executed at {DateTime.UtcNow}."));
+                $"{commandName} was executed at {DateTime.UtcNow} with result: {(result.IsSuccess ? "Success" : result.Error?.ToString())}."));
 
             return Task.CompletedTask;
         }
