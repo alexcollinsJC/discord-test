@@ -1,6 +1,6 @@
-using Discord.Net;
 using Discord.Commands;
-using System;
+using System.Reflection;
+using Discord.WebSocket;
 
 namespace DiscordTest
 {
@@ -19,7 +19,22 @@ namespace DiscordTest
         {
             client.MessageReceived += HandleCommandAsync;
 
-            await commandService.AddModulesAsync(assembly: Assembly.GetEntryAssembly(), services: null);
+            await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+        }
+
+        private async Task HandleCommandAsync(SocketMessage message)
+        {
+            if (message is not SocketUserMessage userMessage) return;
+
+            int argPos = 0;
+            if (userMessage.Author.IsBot || !(userMessage.HasCharPrefix('!', ref argPos) ||
+                                              userMessage.HasMentionPrefix(client.CurrentUser, ref argPos)))
+            {
+                return;
+            }
+
+            SocketCommandContext context = new(client, userMessage);
+            await commandService.ExecuteAsync(context, argPos, null);
         }
     }
 }

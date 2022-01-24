@@ -1,43 +1,55 @@
 using Discord;
 using Discord.WebSocket;
 using System;
+using Discord.Commands;
 
 namespace DiscordTest
 {
     public class DiscordBot
     {
-        private DiscordSocketClient _client;
+        private DiscordSocketClient client;
 
         public DiscordBot()
         {
-            _client = new DiscordSocketClient();
+            client = new DiscordSocketClient();
             
-            _client.Log += Log;
-            _client.Ready += OnReady;
+            client.Log += Log;
+            client.Ready += OnReady;
         }
 
         public async Task Connect()
         {
-            var token = System.Environment.GetEnvironmentVariable("DiscordBotToken");
+            string? token = Environment.GetEnvironmentVariable("DiscordBotToken");
 
-            await _client.LoginAsync(TokenType.Bot, token);
-            await _client.StartAsync();
+            await client.LoginAsync(TokenType.Bot, token);
+            await client.StartAsync();
 
             // Block this task until the program is closed.
             await Task.Delay(-1);
         }
 
-        private Task Log(LogMessage msg)
+        private static Task Log(LogMessage msg)
         {
-	        Console.WriteLine(msg.ToString());
-	        return Task.CompletedTask;
+            Console.WriteLine(msg.ToString());
+            return Task.CompletedTask;
         }
 
         // Put test code here
-        private Task OnReady()
+        private async Task OnReady()
         {
+            await LoadCommands();
             Test();
-            return Task.CompletedTask;
+        }
+
+        private async Task LoadCommands()
+        {
+            CommandService commandService = new(new CommandServiceConfig
+            {
+                LogLevel = LogSeverity.Verbose
+            });
+
+            CommandHandler commandHandler = new(client, commandService);
+            await commandHandler.InstallCommandAsync();
         }
 
         private async void Test()
@@ -48,7 +60,7 @@ namespace DiscordTest
 
         public async Task SendMessage()
         {
-            SocketChannel channel = _client.GetChannel(934211004487852042);
+            SocketChannel channel = client.GetChannel(934211004487852042);
 
             if (channel is IMessageChannel messageChannel)
             {
