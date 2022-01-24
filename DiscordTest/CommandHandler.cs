@@ -32,9 +32,11 @@ namespace DiscordTest
                 sb.AppendLine($"[{moduleInfo.Name}]");
                 foreach (CommandInfo ci in moduleInfo.Commands)
                 {
-                    sb.AppendLine($"  {ci.Name}({string.Join(", ", ci.Parameters.Select(pi => pi.Name))})");
+                    sb.AppendLine($"  {ci.Name}({string.Join(", ", ci.Parameters.Select(pi => $"{pi.Type.Name} {pi.Name}"))})");
                 }
             }
+
+            Console.Write(sb.ToString());
         }
 
         private async Task HandleCommandAsync(SocketMessage message)
