@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using Discord;
 using Discord.WebSocket;
+using JetBrains.Annotations;
 
 namespace DiscordTest;
 
@@ -10,19 +11,22 @@ public class CommandHandler
 {
     private readonly DiscordSocketClient client;
     private readonly CommandService commandService;
+    private readonly IServiceProvider servicesProvider;
 
-    public CommandHandler(DiscordSocketClient discordClient, CommandService commands)
+    public CommandHandler(DiscordSocketClient discordClient, CommandService commands, IServiceProvider services)
     {
         client = discordClient;
         commandService = commands;
+        servicesProvider = services;
     }
 
-    public async Task InstallCommandAsync()
+    [UsedImplicitly]
+    public async Task InitializeAsync()
     {
         client.MessageReceived += HandleCommandAsync;
         commandService.CommandExecuted += OnCommandExecuted;
 
-        await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+        await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), servicesProvider);
 
         StringBuilder sb = new();
         sb.AppendLine("Installed Commands:");

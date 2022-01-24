@@ -1,7 +1,7 @@
 using Discord;
 using Discord.WebSocket;
-using System;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DiscordTest;
 
@@ -37,37 +37,28 @@ public class DiscordBot
     // Put test code here
     private async Task OnReady()
     {
-        await LoadCommands();
-        Test();
+        await Initialize();
     }
 
-    private async Task LoadCommands()
+    private async Task Initialize()
     {
         CommandService commandService = new(new CommandServiceConfig
         {
             LogLevel = LogSeverity.Verbose
         });
 
-        CommandHandler commandHandler = new(client, commandService);
-        await commandHandler.InstallCommandAsync();
+        new ServiceCollection().AddSingleton(client).AddSingleton(commandService).AddSingleton<CommandHandler>().
+            BuildServiceProvider();
+
+        await SendReadyMessage();
     }
 
-    private async void Test()
+    private async Task SendReadyMessage()
     {
-        await Task.Delay(1000);
-        await SendMessage();
-    }
-
-    public async Task SendMessage()
-    {
-        SocketChannel channel = client.GetChannel(934211004487852042);
-
-        if (channel is IMessageChannel messageChannel)
+        if (client.GetChannel(934211004487852042) is IMessageChannel messageChannel)
         {
-            Console.WriteLine("Sending message...");
-            IUserMessage sentMessage = await messageChannel.SendMessageAsync("Hello World!");
-
-            Console.WriteLine($"Message sent: {sentMessage}");
+            await messageChannel.SendMessageAsync("Hello World!");
+            Console.WriteLine("Ready!");
         }
     }
 }
