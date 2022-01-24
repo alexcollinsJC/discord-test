@@ -47,8 +47,13 @@ public class DiscordBot
             LogLevel = LogSeverity.Verbose
         });
 
-        new ServiceCollection().AddSingleton(client).AddSingleton(commandService).AddSingleton<CommandHandler>().
-            BuildServiceProvider();
+        IServiceProvider provider = new ServiceCollection().AddSingleton(client).AddSingleton(commandService).
+            AddSingleton<CommandHandler>().BuildServiceProvider();
+        CommandHandler? handler = provider.GetService<CommandHandler>();
+        if (handler != null)
+        {
+            await handler.InitializeAsync();
+        }
 
         await SendReadyMessage();
     }
@@ -57,8 +62,7 @@ public class DiscordBot
     {
         if (client.GetChannel(934211004487852042) is IMessageChannel messageChannel)
         {
-            await messageChannel.SendMessageAsync("Hello World!");
-            Console.WriteLine("Ready!");
+            await messageChannel.SendMessageAsync("Discord Test Bot online!");
         }
     }
 }
