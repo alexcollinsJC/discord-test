@@ -50,8 +50,8 @@ public class CommandHandler
     {
         string commandName = command.IsSpecified ? $"'{command.Value.Name}'" : "A command";
         Console.WriteLine(new LogMessage(LogSeverity.Info,
-            "CommandExecution",
-            $"{commandName} was executed at {DateTime.UtcNow} with result: {(result.IsSuccess ? "Success" : result.Error?.ToString())}."));
+            nameof(CommandHandler),
+            $"Executed '{commandName}' for {context.User.Username} in {context.Guild.Name}/{context.Channel.Name} with result: {(result.IsSuccess ? "Success" : result.Error?.ToString())}."));
 
         return Task.CompletedTask;
     }
@@ -75,7 +75,11 @@ public class CommandHandler
 
     private Task OnCommandLog(LogMessage logMessage)
     {
-        Console.WriteLine(logMessage.ToString());
+        if (logMessage.Severity <= LogSeverity.Error)
+        {
+            Console.WriteLine(logMessage);
+        }
+
         return Task.CompletedTask;
     }
 }
