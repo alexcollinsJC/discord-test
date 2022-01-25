@@ -66,7 +66,9 @@ public class CommandHandler
             return;
         }
 
+        Console.WriteLine($"Handling command {userMessage.Content} with argPos '{argPos}'");
+
         SocketCommandContext context = new(client, userMessage);
-        await commandService.ExecuteAsync(context, argPos, null);
+        await commandService.ExecuteAsync(context, argPos, servicesProvider);
     }
 }
