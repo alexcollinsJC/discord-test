@@ -9,16 +9,18 @@ namespace DiscordTest.Commands;
 [Group("tictactoe"), UsedImplicitly]
 public class TicTacToeModule : ModuleBase<SocketCommandContext>
 {
-    private TicTacToe game;
+    private static TicTacToe? game;
 
     public TicTacToeModule(DiscordSocketClient discordClient)
     {
-        game = new TicTacToe(discordClient);
+        game ??= new TicTacToe(discordClient);
     }
 
     [Command("start"), UsedImplicitly]
     public async Task StartAsync([Remainder] string opponent)
     {
+        if (game == null) return;
+
         ulong player = Context.User.Id;
         game.StartGame(player, opponent, Context.Channel.Id, out string error);
         if (string.IsNullOrEmpty(error))
@@ -35,6 +37,8 @@ public class TicTacToeModule : ModuleBase<SocketCommandContext>
     [Command("play"), UsedImplicitly]
     public async Task PlayAsync(int cell)
     {
+        if (game == null) return;
+
         ulong player = Context.User.Id;
         ulong? winner = game.TakeTurn(player, Context.Channel.Id, cell, out string error);
         if (winner.HasValue)
