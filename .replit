@@ -1,3 +1,6 @@
 language = "csharp"
 run = ["/home/runner/dotnet/dotnet", "run"]
-onBoot = "sh install_dotnet.sh"
+# onBoot = "sh install_dotnet.sh"
+
+[env]
+DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "true"
