@@ -7,6 +7,7 @@ namespace DiscordTest;
 
 public class DiscordBot
 {
+    private const int MaxLifetimeMs = 1000 * 60 * 60; // one hour
     private DiscordSocketClient client;
 
     public DiscordBot()
@@ -25,7 +26,10 @@ public class DiscordBot
         await client.StartAsync();
 
         // Block this task until the program is closed.
-        await Task.Delay(-1);
+        await Task.Delay(MaxLifetimeMs);
+
+        await client.StopAsync();
+        await client.LogoutAsync();
     }
 
     private static Task Log(LogMessage msg)
