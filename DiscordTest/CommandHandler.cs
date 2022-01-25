@@ -67,7 +67,10 @@ public class CommandHandler
             return;
         }
 
-        Console.WriteLine($"Handling command '{userMessage.Content}'");
+
+        Console.WriteLine(new LogMessage(LogSeverity.Info,
+            nameof(CommandHandler),
+            $"Handling command '{userMessage.Content}'"));
 
         SocketCommandContext context = new(client, userMessage);
         await commandService.ExecuteAsync(context, argPos, servicesProvider);
