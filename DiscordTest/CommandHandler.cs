@@ -25,6 +25,7 @@ public class CommandHandler
     {
         client.MessageReceived += HandleCommandAsync;
         commandService.CommandExecuted += OnCommandExecuted;
+        commandService.Log += OnCommandLog;
 
         await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), servicesProvider);
 
@@ -66,9 +67,15 @@ public class CommandHandler
             return;
         }
 
-        Console.WriteLine($"Handling command {userMessage.Content} with argPos '{argPos}'");
+        Console.WriteLine($"Handling command '{userMessage.Content}'");
 
         SocketCommandContext context = new(client, userMessage);
         await commandService.ExecuteAsync(context, argPos, servicesProvider);
+    }
+
+    private Task OnCommandLog(LogMessage logMessage)
+    {
+        Console.WriteLine(logMessage.ToString());
+        return Task.CompletedTask;
     }
 }
