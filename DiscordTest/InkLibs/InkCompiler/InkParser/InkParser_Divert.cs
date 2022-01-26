@@ -15,7 +15,7 @@ namespace Ink
             // Try single thread first
             var threadDivert = Parse(StartThread);
             if (threadDivert) {
-                diverts = new List<Object> ();
+                diverts = new List<Parsed.Object> ();
                 diverts.Add (threadDivert);
                 return diverts;
             }
@@ -127,7 +127,7 @@ namespace Ink
 
             Whitespace ();
 
-            var targetPath = new Path (targetComponents);
+            var targetPath = new Ink.Parsed.Path (targetComponents);
             return new Divert (targetPath, optionalArguments);
         }
 
