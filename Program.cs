@@ -2,7 +2,7 @@
 
 using DiscordTest;
 
-DiscordBot bot = new DiscordBot();
+DiscordBot bot = new();
 await bot.Connect();
 
 Console.WriteLine("Closing bot!");
