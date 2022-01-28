@@ -17,19 +17,19 @@ public class StorySlashCommand : BaseSlashCommand
         override protected string Description => "Start a story";
         override protected Delegate RunDelegate => StartStory;
 
-        private void StartStory(ulong userId, string storyId)
+        private void StartStory(string story_id)
         {
-            command?.RespondAsync("ALEX WHY IS IT BROKEN");
-            // var controller = NarrativeController.Instance;
-            // if (controller.StartNewNarrative(userId, storyId))
-            // {
-            //     var content = controller.ProgressStory(userId);
-            //     command?.RespondAsync(content);
-            // }
-            // else
-            // {
-            //     command?.RespondAsync("oops");
-            // }
+            var userId = command.User.Id;
+            var controller = NarrativeController.Instance;
+            if (controller.StartNewNarrative(userId, story_id))
+            {
+                var content = controller.ProgressStory(userId);
+                command?.RespondAsync(content);
+            }
+            else
+            {
+                command?.RespondAsync("oops");
+            }
         }
     }
 
@@ -39,8 +39,9 @@ public class StorySlashCommand : BaseSlashCommand
         override protected string Description => "Make a choice";
         override protected Delegate RunDelegate => ChooseOption;
 
-        private void ChooseOption(ulong userId, int index)
+        private void ChooseOption(int index)
         {
+            var userId = command.User.Id;
             var controller = NarrativeController.Instance;
             if (controller.MakeChoice(userId, index))
             {
