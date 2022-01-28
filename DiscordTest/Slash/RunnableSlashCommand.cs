@@ -15,7 +15,7 @@ public sealed class InfoAttribute : Attribute
 public abstract class RunnableSlashCommand : BaseSlashCommand
 {
     protected abstract Delegate RunDelegate { get; }
-    private Dictionary<string, int> parameterInfos = new();
+    private Dictionary<string, (Type, int)> parameterInfos = new();
 
     protected override IEnumerable<BaseSlashCommand> GetSubCommands() => Array.Empty<BaseSlashCommand>();
 
@@ -29,14 +29,18 @@ public abstract class RunnableSlashCommand : BaseSlashCommand
             if (parameterInfo.Name is null) continue;
 
             (ApplicationCommandOptionType optionType, bool found) = GetOptionType(parameterInfo);
-            if (!found) continue;
+            if (!found)
+            {
+                throw new ArgumentException($"Invalid parameter specified in Runnable Command {GetType().FullName}.{RunDelegate.Method.Name} -- " +
+                                            $"{parameterInfo.ParameterType.Name} {parameterInfo.Name}");
+            }
 
-            string name = GetParameterName(parameterInfo.Name);
+            string name = GetValidParameterName(parameterInfo.Name);
             string description =
                 parameterInfo.GetCustomAttribute<InfoAttribute>()?.Info ?? $"The {name}.";
             builder.AddOption(name, optionType, description, !parameterInfo.IsOptional);
 
-            parameterInfos.Add(name, parameterInfo.Position);
+            parameterInfos.Add(name, (parameterInfo.ParameterType, parameterInfo.Position));
         }
 
         return builder;
@@ -49,14 +53,15 @@ public abstract class RunnableSlashCommand : BaseSlashCommand
         object[] parameters = new object[parameterInfos.Count];
         foreach (SocketSlashCommandDataOption option in options)
         {
-            parameters[parameterInfos[option.Name]] = option.Value;
+            (Type parameterType, int parameterPosition) = parameterInfos[option.Name];
+            parameters[parameterPosition] = Convert.ChangeType(option.Value, parameterType);
         }
 
         object? ret = RunDelegate.DynamicInvoke(parameters);
         return ret as Task ?? Task.CompletedTask;
     }
 
-    private static string GetParameterName(string name)
+    private static string GetValidParameterName(string name)
     {
         StringBuilder sb = new();
         foreach (char c in name)
@@ -78,8 +83,12 @@ public abstract class RunnableSlashCommand : BaseSlashCommand
     private static (ApplicationCommandOptionType, bool) GetOptionType(ParameterInfo parameterInfo)
     {
         Type type = parameterInfo.ParameterType;
-        if (type == typeof(int)) return (ApplicationCommandOptionType.Integer, true);
-        if (type == typeof(double)) return (ApplicationCommandOptionType.Number, true);
+        if (type == typeof(int) || type == typeof(long) || type == typeof(uint) || type == typeof(ulong))
+        {
+            return (ApplicationCommandOptionType.Integer, true);
+        }
+
+        if (type == typeof(double) || type == typeof(float)) return (ApplicationCommandOptionType.Number, true);
         if (type == typeof(bool)) return (ApplicationCommandOptionType.Boolean, true);
         if (type == typeof(string)) return (ApplicationCommandOptionType.String, true);
         if (type == typeof(IGuildChannel)) return (ApplicationCommandOptionType.Channel, true);
