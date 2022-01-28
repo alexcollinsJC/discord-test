@@ -14,9 +14,10 @@ public sealed class InfoAttribute : Attribute
 
 public abstract class RunnableSlashCommand : BaseSlashCommand
 {
-    protected override IEnumerable<BaseSlashCommand> SubCommands => Array.Empty<BaseSlashCommand>();
     protected abstract Delegate RunDelegate { get; }
     private Dictionary<string, int> parameterInfos = new();
+
+    protected override IEnumerable<BaseSlashCommand> GetSubCommands() => Array.Empty<BaseSlashCommand>();
 
     protected override SlashCommandBuilder GetBuilder()
     {

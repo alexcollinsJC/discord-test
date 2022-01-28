@@ -9,8 +9,10 @@ public class StorySlashCommand : BaseSlashCommand
     override public string Name => "story";
     override protected string Description => "Story stuff";
 
-    override protected IEnumerable<BaseSlashCommand> SubCommands { get; } =
-        new BaseSlashCommand[] { new StartCommand(), new ChooseCommand() };
+    override protected IEnumerable<BaseSlashCommand> GetSubCommands()
+    {
+        return new BaseSlashCommand[] { new StartCommand(), new ChooseCommand() };
+    }
 
 
     private class StartCommand : RunnableSlashCommand

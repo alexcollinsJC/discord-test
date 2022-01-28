@@ -11,7 +11,11 @@ public abstract class BaseSlashCommand
     protected abstract string Description { get; }
     protected SocketSlashCommand? command { get; private set; } = null;
 
-    protected abstract IEnumerable<BaseSlashCommand> SubCommands { get; }
+    private IEnumerable<BaseSlashCommand>? subCommands;
+
+    private IEnumerable<BaseSlashCommand> SubCommands => subCommands ??= GetSubCommands();
+
+    protected abstract IEnumerable<BaseSlashCommand> GetSubCommands();
 
     public SlashCommandProperties Build() => GetBuilder().Build();
 
