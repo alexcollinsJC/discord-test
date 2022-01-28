@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text;
 using Discord;
 using Discord.WebSocket;
 
@@ -29,11 +30,12 @@ public abstract class RunnableSlashCommand : BaseSlashCommand
             (ApplicationCommandOptionType optionType, bool found) = GetOptionType(parameterInfo);
             if (!found) continue;
 
+            string name = GetParameterName(parameterInfo.Name);
             string description =
-                parameterInfo.GetCustomAttribute<InfoAttribute>()?.Info ?? $"The {parameterInfo.Name}.";
-            builder.AddOption(parameterInfo.Name, optionType, description, !parameterInfo.IsOptional);
+                parameterInfo.GetCustomAttribute<InfoAttribute>()?.Info ?? $"The {name}.";
+            builder.AddOption(name, optionType, description, !parameterInfo.IsOptional);
 
-            parameterInfos.Add(parameterInfo.Name, parameterInfo.Position);
+            parameterInfos.Add(name, parameterInfo.Position);
         }
 
         return builder;
@@ -51,6 +53,25 @@ public abstract class RunnableSlashCommand : BaseSlashCommand
 
         object? ret = RunDelegate.DynamicInvoke(parameters);
         return ret as Task ?? Task.CompletedTask;
+    }
+
+    private static string GetParameterName(string name)
+    {
+        StringBuilder sb = new();
+        foreach (char c in name)
+        {
+            if (char.IsLower(c))
+            {
+                sb.Append(c);
+            }
+            else if (char.IsUpper(c))
+            {
+                sb.Append('_');
+                sb.Append(char.ToLower(c));
+            }
+        }
+
+        return sb.ToString();
     }
 
     private static (ApplicationCommandOptionType, bool) GetOptionType(ParameterInfo parameterInfo)

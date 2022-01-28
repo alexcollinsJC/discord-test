@@ -1,3 +1,4 @@
+using Discord;
 using DiscordTest.Narrative;
 using DiscordTest.Slash;
 
@@ -7,7 +8,8 @@ public class StorySlashCommand : BaseSlashCommand
 {
     override public string Name => "story";
     override protected string Description => "Story stuff";
-    override protected IEnumerable<BaseSlashCommand> SubCommands => 
+
+    override protected IEnumerable<BaseSlashCommand> SubCommands { get; } =
         new BaseSlashCommand[] { new StartCommand(), new ChooseCommand() };
 
 
@@ -17,11 +19,11 @@ public class StorySlashCommand : BaseSlashCommand
         override protected string Description => "Start a story";
         override protected Delegate RunDelegate => StartStory;
 
-        private void StartStory(string story_id)
+        private void StartStory(string storyId)
         {
             var userId = command.User.Id;
             var controller = NarrativeController.Instance;
-            if (controller.StartNewNarrative(userId, story_id))
+            if (controller.StartNewNarrative(userId, storyId))
             {
                 var content = controller.ProgressStory(userId);
                 command?.RespondAsync(content);
