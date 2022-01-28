@@ -45,7 +45,12 @@ sealed public class NarrativeController
         if(runnerMap.TryGetValue(userId, out var runner))
         {
             Console.WriteLine($"Progressing narrative for user {userId}");
-            return runner.Run();
+            string content = runner.Run();
+            if (runner.Done)
+            {
+                runnerMap.Remove(userId);
+            }
+            return content;
         }
         else
         {
