@@ -1,29 +1,40 @@
+using System.Reflection;
 using System.Text;
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
+using DiscordTest.Slash;
 
 namespace DiscordTest;
 
 public class SlashCommandInstaller
 {
     private const ulong TestServerGuildId = 934204465484025907;
+
+    private List<BaseSlashCommand> slashCommands = new();
+
     public async Task InstallSlashCommands(DiscordSocketClient client)
     {
         SocketGuild? server = client.GetGuild(TestServerGuildId);
         if (server == null) return;
 
-        SlashCommandBuilder serverCommand = new();
-        serverCommand.WithName("test-command").WithDescription("Test command description.");
-
-        SlashCommandBuilder squareCommand = new();
-        squareCommand.WithName("square").WithDescription("Square a number.").AddOption("number",
-            ApplicationCommandOptionType.Number, "The number to square.", true);
+        foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+        {
+            if (type.IsSubclassOf(typeof(BaseSlashCommand)) && !type.IsAbstract)
+            {
+                if (Activator.CreateInstance(type) is BaseSlashCommand instance)
+                {
+                    slashCommands.Add(instance);
+                }
+            }
+        }
 
         try
         {
-            await server.CreateApplicationCommandAsync(serverCommand.Build());
-            await server.CreateApplicationCommandAsync(squareCommand.Build());
+            foreach (BaseSlashCommand slashCommand in slashCommands)
+            {
+                await server.CreateApplicationCommandAsync(slashCommand.Build());
+            }
         }
         catch (HttpException httpException)
         {
@@ -51,44 +62,46 @@ public class SlashCommandInstaller
         client.SlashCommandExecuted += SlashCommandHandler;
     }
 
-    private static async Task SlashCommandHandler(SocketSlashCommand slashCommand)
+    private async Task SlashCommandHandler(SocketSlashCommand command)
     {
         Console.WriteLine(new LogMessage(LogSeverity.Info,
             nameof(SlashCommandInstaller),
-            $"Handling command '{GetCommandString(slashCommand.Data)}'"));
+            $"Handling command '{GetCommandString(command.Data)}'"));
 
-        await (slashCommand.Data.Name switch
+        foreach (BaseSlashCommand slashCommand in slashCommands)
         {
-            "test-command" => slashCommand.RespondAsync($"You executed {slashCommand.CommandName}", ephemeral: true),
-            "square" => HandleSquareCommand(slashCommand),
-            _ => Task.CompletedTask
-        });
-    }
-
-    private static Task HandleSquareCommand(SocketSlashCommand command)
-    {
-        double value = 0;
-        foreach (SocketSlashCommandDataOption option in command.Data.Options)
-        {
-            if (option.Name == "number")
+            if (command.CommandName == slashCommand.Name)
             {
-                value = (double) option.Value;
-                break;
+                await slashCommand.Run(command);
             }
         }
-
-        return command.RespondAsync($"The square of '{value}' is '{value * value}'", ephemeral: true);
     }
 
     private static string GetCommandString(SocketSlashCommandData data)
     {
-        StringBuilder sb = new($"/{data.Name}");
-        foreach (SocketSlashCommandDataOption? option in data.Options)
+        List<string> commandParts = new()
         {
-            if (option == null) continue;
-            sb.Append($" {option.Name}: {option.Value}");
-        }
+            $"/{data.Name}"
+        };
 
-        return sb.ToString();
+        GetCommandString(commandParts, data.Options);
+
+        return string.Join(" ", commandParts);
+    }
+
+    private static void GetCommandString(List<string> parts, IEnumerable<SocketSlashCommandDataOption> dataOption)
+    {
+        foreach (SocketSlashCommandDataOption option in dataOption)
+        {
+            parts.Add(option.Name);
+            if (option.Type is ApplicationCommandOptionType.SubCommand or ApplicationCommandOptionType.SubCommandGroup)
+            {
+                GetCommandString(parts, option.Options);
+            }
+            else
+            {
+                parts.Add($": {option.Value}");
+            }
+        }
     }
 }
