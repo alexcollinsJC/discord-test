@@ -1,3 +1,4 @@
+using System.Text;
 using Ink.Runtime;
 
 namespace DiscordTest.Narrative;
@@ -17,7 +18,15 @@ public class NarrativeRunner
     public string Run()
     {
         string text = inkStory.ContinueMaximally();
-        return text;
+        var sb = new StringBuilder();
+        sb.Append(text);
+        for (var i = 0; i < inkStory.currentChoices.Count; i++)
+        {
+            var choice = inkStory.currentChoices[i];
+            sb.AppendLine($"{i}) {choice.text}");
+        }
+
+        return sb.ToString();
     }
 
     public bool MakeChoice(int choice)
