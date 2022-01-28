@@ -35,8 +35,9 @@ public class MathSlashCommand : BaseSlashCommand
             public bool roundUp;
 
             private string roundStr => roundUp ? "up" : "down";
+
             public override string Name => roundStr;
-            protected override string Description => "Round a number up.";
+            protected override string Description => $"Round a number {roundStr}.";
             protected override Delegate RunDelegate => Round;
 
             private Task Round([Info("The number to round.")] double number)

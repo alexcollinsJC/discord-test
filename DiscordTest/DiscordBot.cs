@@ -55,7 +55,7 @@ public class DiscordBot
             AddSingleton<CommandHandler>().AddSingleton<SlashCommandInstaller>().BuildServiceProvider();
 
         await (provider.GetService<CommandHandler>()?.InitializeAsync() ?? Task.CompletedTask);
-        await (provider.GetService<SlashCommandInstaller>()?.InstallSlashCommands(client) ?? Task.CompletedTask);
+        await (provider.GetService<SlashCommandInstaller>()?.InstallSlashCommands(client, false) ?? Task.CompletedTask);
 
         await SendReadyMessage();
     }

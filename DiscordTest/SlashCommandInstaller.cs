@@ -13,14 +13,14 @@ public class SlashCommandInstaller
 
     private List<BaseSlashCommand> slashCommands = new();
 
-    public async Task InstallSlashCommands(DiscordSocketClient client)
+    public async Task InstallSlashCommands(DiscordSocketClient client, bool purgeCommands)
     {
         SocketGuild? server = client.GetGuild(TestServerGuildId);
         if (server == null) return;
 
         foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
         {
-            if (type.IsSubclassOf(typeof(BaseSlashCommand)) && !type.IsAbstract)
+            if (type.IsSubclassOf(typeof(BaseSlashCommand)) && !type.IsAbstract && !type.IsNested)
             {
                 if (Activator.CreateInstance(type) is BaseSlashCommand instance)
                 {
@@ -31,6 +31,11 @@ public class SlashCommandInstaller
 
         try
         {
+            if (purgeCommands)
+            {
+                await server.DeleteApplicationCommandsAsync();
+            }
+
             foreach (BaseSlashCommand slashCommand in slashCommands)
             {
                 await server.CreateApplicationCommandAsync(slashCommand.Build());
@@ -52,8 +57,8 @@ public class SlashCommandInstaller
             sb.AppendLine($"[{slashCommand.Name} -- {slashCommand.Description}]");
             foreach (SocketApplicationCommandOption? option in slashCommand.Options)
             {
-                string required = option.IsRequired.HasValue && option.IsRequired.Value ? " (required)" : string.Empty;
-                sb.AppendLine($"  ({option.Type}) {option.Name} -- {option.Description}{required}");
+                if (option is null) continue;
+                GetCommandString(option, sb, 1);
             }
         }
 
@@ -62,11 +67,29 @@ public class SlashCommandInstaller
         client.SlashCommandExecuted += SlashCommandHandler;
     }
 
+    private static void GetCommandString(SocketApplicationCommandOption option, StringBuilder sb, int depth)
+    {
+        string indent = string.Concat(Enumerable.Repeat(" ", depth));
+        if (option.Type is ApplicationCommandOptionType.SubCommandGroup or ApplicationCommandOptionType.SubCommand)
+        {
+            sb.AppendLine($"{indent}<{option.Name} -- {option.Description}>");
+            foreach (SocketApplicationCommandOption commandOption in option.Options)
+            {
+                GetCommandString(commandOption, sb, depth + 1);
+            }
+        }
+        else
+        {
+            string required = option.IsRequired.HasValue && option.IsRequired.Value ? " (required)" : string.Empty;
+            sb.AppendLine($"{indent}({option.Type}) {option.Name} -- {option.Description}{required}");
+        }
+    }
+
     private async Task SlashCommandHandler(SocketSlashCommand command)
     {
         Console.WriteLine(new LogMessage(LogSeverity.Info,
             nameof(SlashCommandInstaller),
-            $"Handling command '{GetCommandString(command.Data)}'"));
+            $"Handling command '{GetCommandDataString(command.Data)}'"));
 
         foreach (BaseSlashCommand slashCommand in slashCommands)
         {
@@ -77,26 +100,26 @@ public class SlashCommandInstaller
         }
     }
 
-    private static string GetCommandString(SocketSlashCommandData data)
+    private static string GetCommandDataString(SocketSlashCommandData data)
     {
         List<string> commandParts = new()
         {
             $"/{data.Name}"
         };
 
-        GetCommandString(commandParts, data.Options);
+        GetCommandDataString(commandParts, data.Options);
 
         return string.Join(" ", commandParts);
     }
 
-    private static void GetCommandString(List<string> parts, IEnumerable<SocketSlashCommandDataOption> dataOption)
+    private static void GetCommandDataString(List<string> parts, IEnumerable<SocketSlashCommandDataOption> dataOption)
     {
         foreach (SocketSlashCommandDataOption option in dataOption)
         {
             parts.Add(option.Name);
             if (option.Type is ApplicationCommandOptionType.SubCommand or ApplicationCommandOptionType.SubCommandGroup)
             {
-                GetCommandString(parts, option.Options);
+                GetCommandDataString(parts, option.Options);
             }
             else
             {
