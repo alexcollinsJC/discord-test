@@ -5,11 +5,6 @@ public class MathSlashCommand : BaseSlashCommand
     public override string Name => "math";
     protected override string Description => "Helpful math functions.";
 
-    protected override IEnumerable<BaseSlashCommand> GetSubCommands()
-    {
-        return new BaseSlashCommand[] { new SquareSlashCommand(), new RoundSlashCommand() };
-    }
-
     private class SquareSlashCommand : RunnableSlashCommand
     {
         public override string Name => "square";
@@ -28,8 +23,8 @@ public class MathSlashCommand : BaseSlashCommand
         protected override string Description => "Round a number.";
         protected override IEnumerable<BaseSlashCommand> GetSubCommands()
         {
-            return new BaseSlashCommand[]
-                { new RoundNumberSlashCommand { roundUp = true }, new RoundNumberSlashCommand { roundUp = false } };
+            yield return new RoundNumberSlashCommand { roundUp = true };
+            yield return new RoundNumberSlashCommand { roundUp = false };
         }
 
         private class RoundNumberSlashCommand : RunnableSlashCommand

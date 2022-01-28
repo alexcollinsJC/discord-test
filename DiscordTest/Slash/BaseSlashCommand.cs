@@ -1,3 +1,4 @@
+using System.Reflection;
 using Discord;
 using Discord.WebSocket;
 using JetBrains.Annotations;
@@ -15,7 +16,18 @@ public abstract class BaseSlashCommand
 
     private IEnumerable<BaseSlashCommand> SubCommands => subCommands ??= GetSubCommands();
 
-    protected abstract IEnumerable<BaseSlashCommand> GetSubCommands();
+    protected virtual IEnumerable<BaseSlashCommand> GetSubCommands()
+    {
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        foreach (Type nestedType in GetType().GetNestedTypes(flags))
+        {
+            if (nestedType.IsSubclassOf(typeof(BaseSlashCommand)) &&
+                Activator.CreateInstance(nestedType) is BaseSlashCommand baseSlashCommand)
+            {
+                yield return baseSlashCommand;
+            }
+        }
+    }
 
     public SlashCommandProperties Build() => GetBuilder().Build();
 
