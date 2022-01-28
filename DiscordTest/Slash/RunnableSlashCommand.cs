@@ -39,7 +39,7 @@ public abstract class RunnableSlashCommand : BaseSlashCommand
         return builder;
     }
 
-    protected override Task RunCommand(IEnumerable<SocketSlashCommandDataOption> options)
+    protected override Task RunCommand(IEnumerable<SocketSlashCommandDataOption> options, string _)
     {
         if (command == null) return Task.CompletedTask;
 
