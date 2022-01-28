@@ -91,12 +91,21 @@ public class SlashCommandInstaller
             nameof(SlashCommandInstaller),
             $"Handling command '{GetCommandDataString(command.Data)}'"));
 
-        foreach (BaseSlashCommand slashCommand in slashCommands)
+        try
         {
-            if (command.CommandName == slashCommand.Name)
+            BaseSlashCommand? slashCommand = slashCommands.Find(c => c.Name == command.CommandName);
+            if (slashCommand is not null)
             {
                 await slashCommand.Run(command);
             }
+            else
+            {
+                throw new ArgumentException($"Unknown command {GetCommandDataString(command.Data)}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
         }
     }
 
