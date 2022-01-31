@@ -1,4 +1,5 @@
 using Discord;
+using Discord.WebSocket;
 using DiscordTest.Narrative;
 using DiscordTest.Slash;
 
@@ -6,23 +7,21 @@ namespace DiscordTest.Commands;
 
 public class StorySlashCommand : BaseSlashCommand
 {
-    override public string Name => "story";
-    override protected string Description => "Story stuff";
+    public override string Name => "story";
+    protected override string Description => "Story stuff";
 
     private class StartCommand : RunnableSlashCommand
     {
-        override public string Name => "start";
-        override protected string Description => "Start a story";
-        override protected Delegate RunDelegate => StartStory;
+        public override string Name => "start";
+        protected override string Description => "Start a story";
+        protected override Delegate RunDelegate => StartStory;
 
         private void StartStory(string storyId)
         {
-            var userId = Command.User.Id;
-            var controller = NarrativeController.Instance;
-            if (controller.StartNewNarrative(userId, storyId))
+            ulong userId = Command.User.Id;
+            if (NarrativeController.Instance.StartNewNarrative(userId, storyId))
             {
-                var content = controller.ProgressStory(userId);
-                Command.RespondAsync(content);
+                ProgressAndRespond(userId, Command, true);
             }
             else
             {
@@ -33,23 +32,61 @@ public class StorySlashCommand : BaseSlashCommand
 
     private class ChooseCommand : RunnableSlashCommand
     {
-        override public string Name => "choose";
-        override protected string Description => "Make a choice";
-        override protected Delegate RunDelegate => ChooseOption;
+        public override string Name => "choose";
+        protected override string Description => "Make a choice";
+        protected override Delegate RunDelegate => ChooseOption;
 
         private void ChooseOption(int index)
         {
-            var userId = Command.User.Id;
-            var controller = NarrativeController.Instance;
-            if (controller.MakeChoice(userId, index))
+            ulong userId = Command.User.Id;
+            if (NarrativeController.Instance.MakeChoice(userId, index))
             {
-                var content = controller.ProgressStory(userId);
-                Command.RespondAsync(content);
+                ProgressAndRespond(userId, Command, false);
             }
             else
             {
                 Command.RespondAsync("oops");
             }
         }
+    }
+
+    private static void ProgressAndRespond(ulong userId, SocketSlashCommand command, bool start)
+    {
+        NarrativeController controller = NarrativeController.Instance;
+        (string text, string[] choices) = controller.ProgressStory(userId);
+
+        EmbedBuilder embed = new();
+        if (start)
+        {
+            embed.WithTitle("The story begins...");
+            embed.WithDescription(text);
+        }
+        else
+        {
+            string[] lines = text.Split('\n');
+            embed.WithTitle(lines[0]);
+
+            if (lines.Length > 1)
+            {
+                embed.WithDescription(string.Join('\n', lines, 1, lines.Length - 1));
+            }
+        }
+
+        if (choices.Length > 0)
+        {
+            embed.WithThumbnailUrl("https://media2.littlezebra.com/159921-thickbox_default/monsieur-the-mouse-blue-fog.jpg");
+        }
+        else
+        {
+            embed.WithFooter("The story has ended");
+        }
+
+        for (int i = 0 ; i < choices.Length ; i++)
+        {
+            string choice = choices[i];
+            embed.AddField($"{i})", choice);
+        }
+
+        command.RespondAsync(embeds: new[] { embed.Build() });
     }
 }

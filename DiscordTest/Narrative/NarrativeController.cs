@@ -40,21 +40,21 @@ sealed public class NarrativeController
         }
     }
 
-    public string ProgressStory(ulong userId)
+    public (string, string[]) ProgressStory(ulong userId)
     {
         if(runnerMap.TryGetValue(userId, out var runner))
         {
             Console.WriteLine($"Progressing narrative for user {userId}");
-            string content = runner.Run();
+            (string content, string[] choices) = runner.Run();
             if (runner.Done)
             {
                 runnerMap.Remove(userId);
             }
-            return content;
+            return (content, choices);
         }
         else
         {
-            return "No active narrative for user.";
+            return ("No active narrative for user.", Array.Empty<string>());
         }
     }
 }

@@ -22,9 +22,9 @@ public abstract class BaseSlashCommand
         }
     }
 
-    private IEnumerable<BaseSlashCommand>? subCommands;
+    private BaseSlashCommand[]? subCommands = null;
 
-    private IEnumerable<BaseSlashCommand> SubCommands => subCommands ??= GetSubCommands();
+    private IEnumerable<BaseSlashCommand> SubCommands => subCommands ??= GetSubCommands().ToArray();
 
     protected virtual IEnumerable<BaseSlashCommand> GetSubCommands()
     {
