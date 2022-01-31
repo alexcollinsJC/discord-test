@@ -13,7 +13,7 @@ public class MathSlashCommand : BaseSlashCommand
 
         private void Square(double number)
         {
-            command?.RespondAsync($"The square of '{number}' is '{number * number}'!");
+            Command.RespondAsync($"The square of '{number}' is '{number * number}'!");
         }
     }
 
@@ -40,7 +40,7 @@ public class MathSlashCommand : BaseSlashCommand
             private Task Round([Info("The number to round.")] double number)
             {
                 double rounded = roundUp ? Math.Ceiling(number) : Math.Floor(number);
-                return command?.RespondAsync($"'{number}' rounded {roundStr} is '{rounded}'!") ?? Task.CompletedTask;
+                return Command.RespondAsync($"'{number}' rounded {roundStr} is '{rounded}'!") ?? Task.CompletedTask;
             }
         }
     }

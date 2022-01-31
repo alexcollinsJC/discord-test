@@ -17,16 +17,16 @@ public class StorySlashCommand : BaseSlashCommand
 
         private void StartStory(string storyId)
         {
-            var userId = command.User.Id;
+            var userId = Command.User.Id;
             var controller = NarrativeController.Instance;
             if (controller.StartNewNarrative(userId, storyId))
             {
                 var content = controller.ProgressStory(userId);
-                command?.RespondAsync(content);
+                Command.RespondAsync(content);
             }
             else
             {
-                command?.RespondAsync("oops");
+                Command.RespondAsync("oops");
             }
         }
     }
@@ -39,16 +39,16 @@ public class StorySlashCommand : BaseSlashCommand
 
         private void ChooseOption(int index)
         {
-            var userId = command.User.Id;
+            var userId = Command.User.Id;
             var controller = NarrativeController.Instance;
             if (controller.MakeChoice(userId, index))
             {
                 var content = controller.ProgressStory(userId);
-                command?.RespondAsync(content);
+                Command.RespondAsync(content);
             }
             else
             {
-                command?.RespondAsync("oops");
+                Command.RespondAsync("oops");
             }
         }
     }

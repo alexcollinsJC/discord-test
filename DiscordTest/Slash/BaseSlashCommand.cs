@@ -10,7 +10,17 @@ public abstract class BaseSlashCommand
 {
     public abstract string Name { get; }
     protected abstract string Description { get; }
-    protected SocketSlashCommand? command { get; private set; } = null;
+    private SocketSlashCommand? command = null;
+
+    protected SocketSlashCommand Command
+    {
+        get
+        {
+            if (command != null) return command;
+
+            throw new NullReferenceException();
+        }
+    }
 
     private IEnumerable<BaseSlashCommand>? subCommands;
 

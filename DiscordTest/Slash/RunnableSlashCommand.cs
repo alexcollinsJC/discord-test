@@ -48,8 +48,6 @@ public abstract class RunnableSlashCommand : BaseSlashCommand
 
     protected override Task RunCommand(IEnumerable<SocketSlashCommandDataOption> options, string _)
     {
-        if (command == null) return Task.CompletedTask;
-
         object[] parameters = new object[parameterInfos.Count];
         foreach (SocketSlashCommandDataOption option in options)
         {
