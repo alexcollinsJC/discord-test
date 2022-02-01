@@ -22,16 +22,16 @@ public abstract class BaseSlashCommand
         }
     }
 
-    private BaseSlashCommand[]? subCommands = null;
+    private List<BaseSlashCommand>? subCommands = null;
 
-    private IEnumerable<BaseSlashCommand> SubCommands => subCommands ??= GetSubCommands().ToArray();
+    private IEnumerable<BaseSlashCommand> SubCommands => subCommands ??= new List<BaseSlashCommand>(GetSubCommands());
 
     protected virtual IEnumerable<BaseSlashCommand> GetSubCommands()
     {
         const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         foreach (Type nestedType in GetType().GetNestedTypes(flags))
         {
-            if (nestedType.IsSubclassOf(typeof(BaseSlashCommand)) &&
+            if (nestedType.IsSubclassOf(typeof(BaseSlashCommand)) && !nestedType.IsAbstract &&
                 Activator.CreateInstance(nestedType) is BaseSlashCommand baseSlashCommand)
             {
                 yield return baseSlashCommand;
@@ -82,7 +82,7 @@ public abstract class BaseSlashCommand
             }
 
             throw new ArgumentException($"Error -- unable to parse command at : {path} {option.Name}. Available commands:\n" +
-                                        $"{string.Join("\n", SubCommands.Select(sc => $"{Name} -- {Description}"))}");
+                                        $"{string.Join("\n", SubCommands.Select(sc => $"{path} {sc.Name} -> {sc.Description}"))}");
         }
 
         return Task.CompletedTask;
