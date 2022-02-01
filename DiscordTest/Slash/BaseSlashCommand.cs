@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Reflection;
 using Discord;
 using Discord.WebSocket;
@@ -22,9 +23,10 @@ public abstract class BaseSlashCommand
         }
     }
 
-    private List<BaseSlashCommand>? subCommands = null;
+    private IReadOnlyCollection<BaseSlashCommand>? subCommands = null;
 
-    private IEnumerable<BaseSlashCommand> SubCommands => subCommands ??= new List<BaseSlashCommand>(GetSubCommands());
+    private IEnumerable<BaseSlashCommand> SubCommands => subCommands ??=
+        ImmutableArray<BaseSlashCommand>.Empty.AddRange(GetSubCommands());
 
     protected virtual IEnumerable<BaseSlashCommand> GetSubCommands()
     {
